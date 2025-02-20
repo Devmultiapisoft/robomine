@@ -32,6 +32,24 @@ cron.schedule('0 6 * * *', async () => {
 		console.error('Error:', error);
 	}
 })
+// New Cron job that runs 10 minutes after the minting cron job
+cron.schedule('10 0 * * *', async () => {  // Runs at 00:10 UTC, 10 minutes after the minting job
+    try {
+        if (process.env.CRON_STATUS === '0') return;  // Check if crons are disabled
+
+        let crons ="mintCron";  // Get the list of crons from environment variable
+        if (crons[0].length > 1) throw "No Crons Available";
+
+        // Loop through each cron and trigger the cron job via HTTP POST request
+        for (const cron of crons) {
+            await axios.post(`${process.env.BASE_URL}/cron/${cron}`, { key: process.env.APP_API_KEY });
+        }
+
+        console.log('Minting-related Cron job ran successfully after 10 minutes.');
+    } catch (error) {
+        console.error('Error in cron job:', error);
+    }
+});
 
 cron.schedule('* * * * *', async () => {
 	try {

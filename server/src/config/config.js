@@ -98,12 +98,12 @@ module.exports = {
     },
     levelIncomePercentages: [20, 10, 5, 2, 3, 2, 4, 4], // Level 1 to Level 8
     adminWallets: [
-        "65a1234567890abcd1234567",
-        "65a234567890abcd12345678",
-        "65a34567890abcd123456789",
-        "65a4567890abcd1234567890"
+        "0x9706F6C7Ec28bFaC6fecEee1ba607A35deA4a0D4",
+        "0x6E52cb4F97581ca6DB968f5052727b8718308307",
+        "0xEaf7f18A486FFFe004037aE7C8953b57870b9d03",
+        "0xEe7967647E0830B5238284A0B8a7be30A7A50104"
     ],
-    rewardWallet: "65a567890abcd12345678901", // Reward and Achiever Wallet
+    rewardWallet: "0x7841203D284E5230CF4b763e5A7844bC0B0D0808", // Reward and Achiever Wallet
     startDate: new Date('2025-01-01') // Start date of distribution
 
 };

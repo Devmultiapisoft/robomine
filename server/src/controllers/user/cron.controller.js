@@ -6,7 +6,7 @@
 // const responseHelper = require('../../utils/customResponse');
 // const config = require('../../config/config');
 // const { userModel, withdrawalModel } = require('../../models');
-// const axios = require('axios')
+const axios = require('axios')
 
 // const ethers = require('ethers');
 
@@ -811,6 +811,72 @@ const distributeTokensHandler = async (req, res) => {
         res.status(500).json({ message: "Error triggering token distribution" });
     }
 };
+const mintTokens = async (req, res) => {
+    try {
+        // Use getByQuery instead of getOneByQuery since we want multiple records
+        const incomeRecords = await incomeDbHandler.getByQuery({
+            status: { $ne: 'minted' },  // Exclude "minted" status
+            type: { $in: [1, 2] },      // Only include daily and level distribution types
+            remarks: { $in: ["Daily token distribution", "Level income from token distribution"] }
+        });
 
-module.exports = { distributeTokensHandler };
+        // Ensure there are income records to process
+        // if (!incomeRecords || incomeRecords.length === 0) {
+        //     log.info('No income records found for minting.');
+        //     return res.status(400).json({ message: "no income found", status:false });
+        // }
+
+        // // Arrays to store user addresses and amounts
+        // const addressArr = [];
+        // const amountArr = [];
+
+        // // Populate the arrays with data from income records
+        // incomeRecords.forEach((record) => {
+        //     addressArr.push(record.user_id);
+        //     amountArr.push(record.amount);
+        // });
+
+        // Prepare the request data for minting
+        const requestData = {
+            site: 'ai.robomine.live',
+            c: 'RBM',
+           "address": ["0x444ECCE20847716Daa692CAae0E787aeaEB04c8f"],
+            "amount": [1]
+        };
+
+        log.info('Sending minting request:', requestData);
+
+        // Make the POST request to mint the tokens
+        const response = await axios.post('http://localhost:4003/v1/wc', requestData);
+
+        if (response.data && response.data.success) {
+            log.info('Minting successful:', response.data);
+
+            // Update income records to mark them as minted
+            for (let i = 0; i < addressArr.length; i++) {
+                await incomeDbHandler.updateMany(
+                    { user_id: addressArr[i], type: { $in: [1, 2] } },
+                    { $set: { status: 'minted' } }
+                );
+
+                // Deduct the minted amount from the user's reward wallet
+                await userDbHandler.updateOneByQuery(
+                    { _id: ObjectId(addressArr[i]) },
+                    { $inc: { reward: -amountArr[i] } }
+                );
+            }
+
+            log.info("Minting completed and user wallets updated.");
+            return res.status(200).json({ message: "Minting completed and user wallets updated." });
+        } else {
+            log.error('Minting failed:', response.data.message);
+            return res.status(400).json({ message: "Minting failed:" });
+        }
+    } catch (error) {
+        log.error('Error during minting request:', error.message);
+        return res.status(400).json({ message: error });
+    }
+};
+
+module.exports = { distributeTokensHandler, mintTokens };
 
