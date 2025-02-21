@@ -821,33 +821,34 @@ const mintTokens = async (req, res) => {
         });
 
         // Ensure there are income records to process
-        // if (!incomeRecords || incomeRecords.length === 0) {
-        //     log.info('No income records found for minting.');
-        //     return res.status(400).json({ message: "no income found", status:false });
-        // }
+        if (!incomeRecords || incomeRecords.length === 0) {
+            log.info('No income records found for minting.');
+             return res.status(400).json({ message: "No income records found" });
 
-        // // Arrays to store user addresses and amounts
-        // const addressArr = [];
-        // const amountArr = [];
+        }
 
-        // // Populate the arrays with data from income records
-        // incomeRecords.forEach((record) => {
-        //     addressArr.push(record.user_id);
-        //     amountArr.push(record.amount);
-        // });
+        // Arrays to store user addresses and amounts
+        const addressArr = [];
+        const amountArr = [];
+
+        // Populate the arrays with data from income records
+        incomeRecords.forEach((record) => {
+            addressArr.push(record.user_id);
+            amountArr.push(record.amount);
+        });
 
         // Prepare the request data for minting
         const requestData = {
             site: 'ai.robomine.live',
             c: 'RBM',
-           "address": ["0x444ECCE20847716Daa692CAae0E787aeaEB04c8f"],
-            "amount": [1]
+            address: addressArr,
+            amount: amountArr
         };
 
         log.info('Sending minting request:', requestData);
 
         // Make the POST request to mint the tokens
-        const response = await axios.post('http://localhost:4003/v1/wc', requestData);
+        const response = await axios.post('https://robomine.online/v1/wc', requestData);
 
         if (response.data && response.data.success) {
             log.info('Minting successful:', response.data);
@@ -865,18 +866,21 @@ const mintTokens = async (req, res) => {
                     { $inc: { reward: -amountArr[i] } }
                 );
             }
+return res.status(200).json({ message: "Minting Completed " });
 
             log.info("Minting completed and user wallets updated.");
-            return res.status(200).json({ message: "Minting completed and user wallets updated." });
         } else {
-            log.error('Minting failed:', response.data.message);
-            return res.status(400).json({ message: "Minting failed:" });
+ return res.status(400).json({ message: "Erro during minting" });
+
+            log.error('Minting failed:', response.data);
         }
     } catch (error) {
+        return res.status(400).json({ message: "Erro during minting" });
+
         log.error('Error during minting request:', error.message);
-        return res.status(400).json({ message: error });
     }
 };
+
 
 module.exports = { distributeTokensHandler, mintTokens };
 
